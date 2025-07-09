@@ -1,17 +1,19 @@
-import type { Metadata } from 'next';
-import { Bricolage_Grotesque } from 'next/font/google';
-import './globals.css';
-import { TRPCProvider } from '~/lib/providers';
+import type { Metadata } from "next";
+import { Bricolage_Grotesque } from "next/font/google";
+import "./globals.css";
+import { TRPCProvider } from "~/lib/providers";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 
 const bricolageGrotesque = Bricolage_Grotesque({
-  variable: '--font-bricolage-grotesque',
-  subsets: ['latin'],
-  weight: ['200', '300', '400', '500', '600', '700', '800'],
+  variable: "--font-bricolage-grotesque",
+  subsets: ["latin"],
+  weight: ["200", "300", "400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
-  title: 'TweetWriter',
-  description: 'AI-powered tweet creation platform',
+  title: "TweetWriter",
+  description: "AI-powered tweet creation platform",
 };
 
 export default function RootLayout({
@@ -20,9 +22,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${bricolageGrotesque.variable} font-sans antialiased`}>
-        <TRPCProvider>{children}</TRPCProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={`${bricolageGrotesque.variable} font-sans antialiased`}
+      >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <TRPCProvider>{children}</TRPCProvider>
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );

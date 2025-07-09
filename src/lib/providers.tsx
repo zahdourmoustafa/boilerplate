@@ -52,4 +52,4 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
       </QueryClientProvider>
     </trpc.Provider>
   );
-}
+} 

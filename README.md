@@ -1,19 +1,16 @@
-# TweetWriter - Moustafa's Next.js Boilerplate
+# TweetWriter - tRPC Boilerplate
 
-This is a production-ready Next.js boilerplate with authentication, payments, AI integration, and beautiful UI components.
+This is a Next.js project with a complete tRPC setup using the App Router.
 
 ## 🚀 Features
 
-- ✅ **Next.js 15** with App Router
 - ✅ **tRPC v11** with full TypeScript support
+- ✅ **Next.js 15** with App Router
 - ✅ **React Query** for client-side state management
-- ✅ **Better Auth** with Google OAuth
-- ✅ **Prisma** with Neon.tech PostgreSQL
-- ✅ **Vercel AI SDK** for AI integration
-- ✅ **Polar.sh** for payments
-- ✅ **shadcn/ui** components
+- ✅ **Zod** for runtime type validation
 - ✅ **Tailwind CSS** for styling
 - ✅ **TypeScript** end-to-end type safety
+- ✅ **Prisma** ready for database integration
 
 ## 📁 Project Structure
 
@@ -24,17 +21,10 @@ src/
 │   │   └── trpc/
 │   │       └── [trpc]/
 │   │           └── route.ts       # tRPC API handler
-│   ├── demo/
-│   │   └── page.tsx               # tRPC demo page
 │   ├── layout.tsx                 # Root layout with providers
-│   └── page.tsx                   # Landing page
-├── components/
-│   └── navigation.tsx             # Navigation component
+│   └── page.tsx                   # Demo page with examples
 ├── lib/
-│   ├── env.ts                     # Environment validation
-│   ├── prisma.ts                  # Prisma client
-│   ├── providers.tsx              # tRPC & React Query providers
-│   └── utils.ts                   # Utility functions
+│   └── providers.tsx              # tRPC & React Query providers
 └── server/
     ├── trpc.ts                    # tRPC initialization & context
     └── routers/
@@ -45,52 +35,158 @@ src/
 ## 🛠️ Getting Started
 
 1. **Install dependencies:**
-
    ```bash
    npm install
    ```
 
-2. **Set up environment variables:**
-
-   ```bash
-   cp .env.example .env.local
-   # Edit .env.local with your API keys
-   ```
-
-3. **Run the development server:**
-
+2. **Run the development server:**
    ```bash
    npm run dev
    ```
 
-4. **Open [http://localhost:3000](http://localhost:3000)** to see the landing page
+3. **Open [http://localhost:3000](http://localhost:3000)** to see the demo page
 
-## 🎨 Pages
+## 📚 tRPC Usage Examples
 
-- **Landing Page** (`/`) - Welcome page with navigation and login button
-- **tRPC Demo** (`/demo`) - Interactive tRPC examples and documentation
+### Client-side Usage
 
-## 📚 Available Scripts
+```tsx
+'use client';
+import { trpc } from '~/lib/providers';
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npm run lint` - Run ESLint
-- `npm run lint:fix` - Fix ESLint errors
-- `npm run format` - Format code with Prettier
-- `npm run type-check` - Run TypeScript type checking
-- `npm run db:generate` - Generate Prisma client
-- `npm run db:push` - Push schema to database
-- `npm run db:migrate` - Run database migrations
-- `npm run db:studio` - Open Prisma Studio
+export default function MyComponent() {
+  // Query example
+  const hello = trpc.hello.useQuery({ text: 'World' });
+  
+  // Mutation example
+  const createPost = trpc.createPost.useMutation();
+  
+  // Sub-router usage
+  const posts = trpc.posts.getAll.useQuery();
+  
+  return (
+    <div>
+      {hello.data?.greeting}
+    </div>
+  );
+}
+```
 
-## 🔧 Next Steps (Phase 2)
+### Server-side Router Definition
 
-The landing page includes a "Sign in with Google" button that's ready for Phase 2 implementation:
+```tsx
+// src/server/routers/example.ts
+import { z } from 'zod';
+import { procedure, router } from '../trpc';
 
-1. Set up Better Auth with Google OAuth
-2. Create protected dashboard routes
-3. Implement user session management
+export const exampleRouter = router({
+  getById: procedure
+    .input(z.object({ id: z.string() }))
+    .query(({ input }) => {
+      // Your logic here
+      return { id: input.id, name: 'Example' };
+    }),
+    
+  create: procedure
+    .input(z.object({ name: z.string() }))
+    .mutation(({ input }) => {
+      // Your mutation logic here
+      return { success: true };
+    }),
+});
+```
+
+## 🔧 Adding New Routers
+
+1. **Create a new router file:**
+   ```tsx
+   // src/server/routers/myFeature.ts
+   import { z } from 'zod';
+   import { procedure, router } from '../trpc';
+   
+   export const myFeatureRouter = router({
+     // your procedures here
+   });
+   ```
+
+2. **Add it to the main app router:**
+   ```tsx
+   // src/server/routers/_app.ts
+   import { myFeatureRouter } from './myFeature';
+   
+   export const appRouter = router({
+     // existing routes...
+     myFeature: myFeatureRouter,
+   });
+   ```
+
+## 🔐 Adding Authentication
+
+You can add authentication middleware by modifying the context in `src/server/trpc.ts`:
+
+```tsx
+export const createTRPCContext = cache(async () => {
+  // Get user session from cookies/headers
+  const session = await getServerSession();
+  
+  return {
+    session,
+    userId: session?.user?.id || null,
+  };
+});
+
+// Create protected procedure
+export const protectedProcedure = procedure.use(async ({ ctx, next }) => {
+  if (!ctx.session) {
+    throw new TRPCError({ code: 'UNAUTHORIZED' });
+  }
+  return next({
+    ctx: {
+      ...ctx,
+      session: ctx.session,
+    },
+  });
+});
+```
+
+## 🗄️ Database Integration
+
+This project includes Prisma. To set it up:
+
+1. Configure your database URL in `.env`
+2. Update your Prisma schema
+3. Use Prisma in your tRPC procedures:
+
+```tsx
+import { prisma } from '~/lib/prisma';
+
+export const postsRouter = router({
+  getAll: procedure
+    .query(async () => {
+      return await prisma.post.findMany();
+    }),
+});
+```
+
+## 🔗 Useful Links
+
+- [tRPC Documentation](https://trpc.io)
+- [React Query Documentation](https://tanstack.com/query)
+- [Zod Documentation](https://zod.dev)
+- [Next.js Documentation](https://nextjs.org/docs)
+
+## 📝 Environment Variables
+
+Create a `.env.local` file with:
+
+```env
+# Database
+DATABASE_URL="your-database-url"
+
+# Auth (if using NextAuth.js)
+NEXTAUTH_SECRET="your-secret"
+NEXTAUTH_URL="http://localhost:3000"
+```
 
 ## 🚀 Deployment
 
@@ -100,32 +196,3 @@ The easiest way to deploy is using [Vercel](https://vercel.com/new):
 2. Connect to Vercel
 3. Configure environment variables
 4. Deploy!
-
-## 📝 Environment Variables
-
-Create a `.env.local` file with:
-
-```env
-# Database
-DATABASE_URL="postgresql://..."
-DIRECT_URL="postgresql://..."
-
-# Authentication (Better Auth)
-BETTER_AUTH_SECRET="..."
-GOOGLE_CLIENT_ID="..."
-GOOGLE_CLIENT_SECRET="..."
-BETTER_AUTH_URL="http://localhost:3000"
-
-# AI Integration
-OPENAI_API_KEY="sk-..."
-ANTHROPIC_API_KEY="sk-ant-..."
-
-# Payments (Polar.sh)
-POLAR_ACCESS_TOKEN="polar_at_..."
-POLAR_WEBHOOK_SECRET="..."
-POLAR_ORGANIZATION_ID="..."
-
-# Application
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
-NEXT_PUBLIC_APP_NAME="Moustafa Boilerplate"
-```
