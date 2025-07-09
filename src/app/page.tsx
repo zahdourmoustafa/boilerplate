@@ -1,103 +1,194 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useState } from 'react';
+import { trpc } from '~/lib/providers';
+
+export default function HomePage() {
+  const [text, setText] = useState('World');
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+
+  // Example query
+  const hello = trpc.hello.useQuery({ text });
+  
+  // Example mutation
+  const createPost = trpc.createPost.useMutation({
+    onSuccess: (data) => {
+      console.log('Post created:', data);
+      setTitle('');
+      setContent('');
+    },
+  });
+
+  // Example query without input
+  const secretMessage = trpc.secretMessage.useQuery();
+
+  const handleCreatePost = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (title && content) {
+      createPost.mutate({ title, content });
+    }
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-4xl mx-auto px-4">
+        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-8">
+            🚀 tRPC Boilerplate Setup Complete!
+          </h1>
+          
+          {/* Hello Query Example */}
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              Query Example
+            </h2>
+            <div className="flex gap-4 mb-4">
+              <input
+                type="text"
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder="Enter text for greeting"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            {hello.isLoading && (
+              <p className="text-gray-600">Loading...</p>
+            )}
+            {hello.error && (
+              <p className="text-red-600">Error: {hello.error.message}</p>
+            )}
+            {hello.data && (
+              <div className="bg-green-50 border border-green-200 rounded-md p-4">
+                <p className="text-green-800 font-medium">
+                  {hello.data.greeting}
+                </p>
+                <p className="text-green-600 text-sm">
+                  Timestamp: {hello.data.timestamp}
+                </p>
+              </div>
+            )}
+          </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          {/* Create Post Mutation Example */}
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              Mutation Example
+            </h2>
+            <form onSubmit={handleCreatePost} className="space-y-4">
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Post title"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Post content"
+                rows={4}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                type="submit"
+                disabled={createPost.isLoading || !title || !content}
+                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {createPost.isLoading ? 'Creating...' : 'Create Post'}
+              </button>
+            </form>
+            
+            {createPost.error && (
+              <p className="text-red-600 mt-2">
+                Error: {createPost.error.message}
+              </p>
+            )}
+            
+            {createPost.data && (
+              <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mt-4">
+                <h3 className="font-semibold text-blue-800">
+                  Post Created Successfully!
+                </h3>
+                <p className="text-blue-700">ID: {createPost.data.id}</p>
+                <p className="text-blue-700">Title: {createPost.data.title}</p>
+                <p className="text-blue-700">Content: {createPost.data.content}</p>
+                <p className="text-blue-600 text-sm">
+                  Created: {createPost.data.createdAt}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Secret Message Example */}
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              Protected Query Example
+            </h2>
+            {secretMessage.isLoading && (
+              <p className="text-gray-600">Loading secret...</p>
+            )}
+            {secretMessage.error && (
+              <p className="text-red-600">Error: {secretMessage.error.message}</p>
+            )}
+            {secretMessage.data && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+                <p className="text-yellow-800 font-medium">
+                  🔐 {secretMessage.data.message}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Instructions */}
+          <div className="bg-gray-50 border border-gray-200 rounded-md p-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              📚 What's Set Up
+            </h2>
+            <ul className="space-y-2 text-gray-700">
+              <li>✅ tRPC server with App Router support</li>
+              <li>✅ React Query integration</li>
+              <li>✅ TypeScript end-to-end type safety</li>
+              <li>✅ Example queries and mutations</li>
+              <li>✅ Context setup for authentication/database</li>
+              <li>✅ Path aliases configured (~/* and @/*)</li>
+            </ul>
+            
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                📁 File Structure Created
+              </h3>
+              <pre className="bg-gray-100 p-4 rounded text-sm text-gray-700 overflow-x-auto">
+{`src/
+├── server/
+│   ├── trpc.ts              # tRPC initialization
+│   └── routers/
+│       └── _app.ts          # Main app router
+├── app/
+│   └── api/
+│       └── trpc/
+│           └── [trpc]/
+│               └── route.ts # API route handler
+└── lib/
+    └── providers.tsx        # tRPC & React Query providers`}
+              </pre>
+            </div>
+
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                🚀 Next Steps
+              </h3>
+              <ul className="space-y-1 text-gray-700">
+                <li>• Add your database/Prisma integration</li>
+                <li>• Set up authentication middleware</li>
+                <li>• Create more routers for your features</li>
+                <li>• Add input validation with Zod</li>
+                <li>• Configure environment variables</li>
+              </ul>
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
     </div>
   );
 }
