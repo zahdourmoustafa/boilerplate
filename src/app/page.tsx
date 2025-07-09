@@ -92,10 +92,10 @@ export default function HomePage() {
               />
               <button
                 type="submit"
-                disabled={createPost.isLoading || !title || !content}
+                disabled={createPost.isPending || !title || !content}
                 className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {createPost.isLoading ? 'Creating...' : 'Create Post'}
+                {createPost.isPending ? 'Creating...' : 'Create Post'}
               </button>
             </form>
             
@@ -143,7 +143,7 @@ export default function HomePage() {
           {/* Instructions */}
           <div className="bg-gray-50 border border-gray-200 rounded-md p-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
-              📚 What's Set Up
+              📚 What&apos;s Set Up
             </h2>
             <ul className="space-y-2 text-gray-700">
               <li>✅ tRPC server with App Router support</li>
