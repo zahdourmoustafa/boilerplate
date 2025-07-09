@@ -2,31 +2,48 @@ import { z } from 'zod';
 import { procedure, router } from '../trpc';
 
 export const postsRouter = router({
-  getAll: procedure
-    .query(() => {
-      // In a real app, this would fetch from your database
-      return [
-        { id: '1', title: 'First Post', content: 'This is the first post', createdAt: new Date().toISOString() },
-        { id: '2', title: 'Second Post', content: 'This is the second post', createdAt: new Date().toISOString() },
-      ];
-    }),
+  getAll: procedure.query(() => {
+    // In a real app, this would fetch from your database
+    return [
+      {
+        id: '1',
+        title: 'First Post',
+        content: 'This is the first post',
+        createdAt: new Date().toISOString(),
+      },
+      {
+        id: '2',
+        title: 'Second Post',
+        content: 'This is the second post',
+        createdAt: new Date().toISOString(),
+      },
+    ];
+  }),
 
-  getById: procedure
-    .input(z.object({ id: z.string() }))
-    .query(({ input }) => {
-      // In a real app, this would fetch from your database
-      const posts = [
-        { id: '1', title: 'First Post', content: 'This is the first post', createdAt: new Date().toISOString() },
-        { id: '2', title: 'Second Post', content: 'This is the second post', createdAt: new Date().toISOString() },
-      ];
-      
-      const post = posts.find(p => p.id === input.id);
-      if (!post) {
-        throw new Error('Post not found');
-      }
-      
-      return post;
-    }),
+  getById: procedure.input(z.object({ id: z.string() })).query(({ input }) => {
+    // In a real app, this would fetch from your database
+    const posts = [
+      {
+        id: '1',
+        title: 'First Post',
+        content: 'This is the first post',
+        createdAt: new Date().toISOString(),
+      },
+      {
+        id: '2',
+        title: 'Second Post',
+        content: 'This is the second post',
+        createdAt: new Date().toISOString(),
+      },
+    ];
+
+    const post = posts.find(p => p.id === input.id);
+    if (!post) {
+      throw new Error('Post not found');
+    }
+
+    return post;
+  }),
 
   create: procedure
     .input(
@@ -43,7 +60,7 @@ export const postsRouter = router({
         content: input.content,
         createdAt: new Date().toISOString(),
       };
-      
+
       return newPost;
     }),
 
@@ -71,4 +88,4 @@ export const postsRouter = router({
       // In a real app, this would delete from your database
       return { success: true, deletedId: input.id };
     }),
-}); 
+});
